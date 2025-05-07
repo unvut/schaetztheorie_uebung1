@@ -152,6 +152,36 @@ def histogram(patch: np.ndarray, n_bins: int) -> np.ndarray:
 # Write a Python function that calculate the normalized and cumulative histogram
 # Input: Histogram
 # Output: Two vectors for respectively the normalized and cumulative histogram
+def normalized_and_cumulative_histogram(hist: np.ndarray) -> (np.ndarray, np.ndarray):
+    """
+    Compute the normalized and cumulative histogram.
+
+    Parameters:
+    hist (np.ndarray): The input histogram (z.B. 256er Vektor).
+
+    Returns:
+    tuple: (normalized_hist, cumulative_hist), beide als np.ndarray
+    """
+    # Summe berechnen 
+    total = 0
+    for h in hist:                                      # Schleife summiert alle Werte im Histogramm, um die Gesamtanzahl zu bestimmen
+        total += h
+
+    normalized_hist = np.zeros_like(hist, dtype=float)
+    cumulative_hist = np.zeros_like(hist, dtype=float)
+    cumulative_sum = 0.0
+
+    for i in range(len(hist)):
+        # Normalisieren
+        if total > 0:
+            normalized_hist[i] = hist[i] / total        # Wert wird durch die Gesamtsumme geteilt, um die relative Häufigkeit zu berechnen
+        else:
+            normalized_hist[i] = 0.0
+        # Kumulieren
+        cumulative_sum += normalized_hist[i]            # normalisierten Werte werden aufsummiert, um das kumulierte Histogramm zu erstellen
+        cumulative_hist[i] = cumulative_sum
+
+    return normalized_hist, cumulative_hist
 
 
 ############### ---- 7 ---- ##############
@@ -234,5 +264,51 @@ if __name__ == "__main__":
     ## TASK 5 ##
     
     ## TASK 6 ##
+    hist_norm_kum = normalized_and_cumulative_histogram(hist)
+    norm_hist = hist_norm_kum[0]
+    cum_hist = hist_norm_kum[1]
+
+    # Histogramme plotten
+    x = np.arange(n_bins)
+    fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+    # Absolutes Histogramm
+    axs[0].bar(x, hist, width=1, color='gray')
+    axs[0].set_title('Absolutes Histogramm')
+    axs[0].set_xlabel('Grauwert')
+    axs[0].set_ylabel('Anzahl')
+    # Normalisiertes Histogramm
+    axs[1].bar(x, norm_hist, width=1, color='blue')
+    axs[1].set_title('Normalisiertes Histogramm')
+    axs[1].set_xlabel('Grauwert')
+    axs[1].set_ylabel('Relative Häufigkeit')
+    # Kumuliertes Histogramm (als Linie)
+    axs[2].plot(x, cum_hist, color='red')
+    axs[2].set_title('Kumuliertes Histogramm')
+    axs[2].set_xlabel('Grauwert')
+    axs[2].set_ylabel('Kumulierte Summe')
+    plt.tight_layout()
+    plt.show()
+
+    ## alle drei Histogramme überlagert ##
+    fig, ax1 = plt.subplots(figsize=(10,5))
+    # Absolutes Histogramm (graue Balken)
+    ax1.bar(x, hist, width=1, color='gray', alpha=0.4, label='Absolut')
+    # Normalisiertes Histogramm (blaue Balken, kleinere Höhe)
+    ax1.bar(x, norm_hist * hist.max(), width=1, color='blue', alpha=0.4, label='Normalisiert')
+    ax1.set_xlabel('Grauwert')
+    ax1.set_ylabel('Anzahl (links)')
+    #ax1.legend(loc='upper left')
+    # Zweite y-Achse für das kumulierte Histogramm
+    ax2 = ax1.twinx()
+    ax2.plot(x, cum_hist, color='red', linewidth=2, label='Kumuliert')
+    ax2.set_ylabel('Kumulierte Summe (rechts, normiert)')
+    ax2.set_ylim(0, 1.05)
+    # Legenden zusammenführen
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines_1 + lines_2, labels_1 + labels_2, loc='lower right')
+    plt.title('Absolutes, normalisiertes und kumuliertes Histogramm')
+    plt.tight_layout()
+    plt.show()
     
     ## TASK 7 ##
